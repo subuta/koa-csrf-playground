@@ -1,0 +1,31 @@
+{
+  "name": "koa-csrf-playground",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node -r esm ./index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/subuta/koa-csrf-playground.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/subuta/koa-csrf-playground/issues"
+  },
+  "homepage": "https://github.com/subuta/koa-csrf-playground#readme",
+  "dependencies": {
+    "common-tags": "^1.8.0",
+    "esm": "^3.2.25",
+    "koa": "^2.11.0",
+    "koa-body": "^4.1.1",
+    "koa-csrf": "^3.0.8",
+    "koa-logger": "^3.2.1",
+    "koa-router": "^7.4.0",
+    "koa-session": "^5.12.3",
+    "koa-static": "^5.0.0"
+  }
+}

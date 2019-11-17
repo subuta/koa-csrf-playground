@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8'>
+    <meta name='viewport'
+          content='width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0'>
+    <meta http-equiv='X-UA-Compatible' content='ie=edge'>
+    <title>Document</title>
+  </head>
+  <body>
+    <div id='app'></div>
+
+    <!-- load libraries -->
+    <script src='//unpkg.com/preact@latest'></script>
+    <script src='//unpkg.com/preact@latest/hooks/dist/hooks.umd.js'></script>
+    <script src='//unpkg.com/htm'></script>
+
+    <!-- do render -->
+    <script>
+      const { h, render } = window.preact
+      const { useState } = window.preactHooks
+      const fetch = window.fetch
+
+      // SEE: https://github.com/axios/axios/blob/6284abfa0693c983e9378b2d074c095262aac7bd/lib/helpers/cookies.js
+      const readCookie = (name) => {
+        const match = document.cookie.match(new RegExp('(^|;\\s*)(' + name + ')=([^;]*)'))
+        return (match ? decodeURIComponent(match[3]) : null)
+      }
+
+      // Initialize htm with Preact
+      const html = htm.bind(h)
+
+      const App = (props) => {
+        const [page, setPage] = useState(props.page)
+
+        const go = (pathname) => {
+          window.history.pushState({}, null, pathname)
+          setPage(pathname)
+        }
+
+        const onSubmit = async (e) => {
+          e.preventDefault()
+
+          // Ensure CSRF-TOKEN fetched.
+          await fetch('/api/ensure_csrf_token').then((res) => res.text())
+
+          // SEE: https://stackoverflow.com/a/46642899
+          const form = new window.URLSearchParams();
+          form.append('email', '')
+          form.append('password', '')
+
+          // SEE: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
+          const response = await fetch('/register', {
+            cache: 'no-cache',
+            method: 'POST',
+            headers: {
+              'x-csrf-token': readCookie('XSRF-TOKEN')
+            },
+            body: form
+          }).then((res) => res.text())
+
+          console.log('Got response = ', response)
+
+          go('/register')
+        }
+
+        if (page === '/form') {
+          return html`
+            <h1>SPA Example</h1>
+
+            <header style='margin: 1rem 0;'>
+              <a href='/'>SSR version</a>
+            </header>
+
+            <form
+                action='/register'
+                method='POST'
+                onSubmit=${onSubmit}
+            >
+                <input type='email' name='email' placeholder='Email' />
+                <input type='password' name='password' placeholder='Password' />
+                <button type='submit'>Register</button>
+            </form>
+          `
+        } else if (page === '/register') {
+          return html`
+            success!
+          `
+        }
+
+        return null
+      }
+
+      // Do render app
+      render(html`<${App} page="/form" />`, document.getElementById('app'))
+    </script>
+  </body>
+</html>
